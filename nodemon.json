@@ -1,0 +1,9 @@
+{
+  "verbose": true,
+  "ignore": [
+    "./meta.json",
+    "**/whatsapp_cache/**",
+    "**/tmp/**",
+    ".wwebjs_cache/**"
+  ]
+}

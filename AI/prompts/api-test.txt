@@ -1,0 +1,11 @@
+my server is running on localhost:3007
+phone_number: 1234567890
+password : admin@123
+
+you have access to MCP server to make api call and run query in my database
+
+look at my code base then. for better understanding of my database schema @schema.sql
+
+for routing structure @app.js @app.route.js
+
+test the route of controller @getStoreTopProducts.js you can find the route file for this @store-analytics.route.js

@@ -1,0 +1,27 @@
+services:
+  web:
+    build: .
+    environment:
+      - NODE_ENV=dev # dev, prod
+      - SERVICE_NAME=PGMS
+      - SERVER_PORT=3007
+      - JWT_SECRET=jwt@secret
+      - DB_HOST=localhost
+      - DB_PORT=5432
+      - DB_NAME=pg_manager
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - AWS_REGION=AWS_REGION
+      - AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_IDAWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEYAWS_SECRET_ACCESS_KEY
+      - AWS_S3_BUCKET_NAME=AWS_BUCKET_NAMEAWS_BUCKET_NAME
+      - CONSOLE_LOG_LEVEL=debug # false, error, warn, info, http, verbose, debug, silly
+      - FILE_LOG_LEVEL=false # false, error, warn, info, http, verbose, debug, silly
+      - EMAIL_ID=abc@gmail.com
+      - EMAIL_PASSWORD="your password"
+      - WHATSAPP_PHONE_NUMBER_ID=252345345
+      - WHATSAPP_TOKEN=sljdlfjlajsadfj
+      - DATABASE_URL="postgres://username:password@127.0.0.1:5432/database_name?sslmode=disable"
+
+    ports:
+      - '3007:3007'
