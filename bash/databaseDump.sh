@@ -2,10 +2,10 @@
 
 
 
-DB_HOST="194.164.149.149"
+DB_HOST="localhost"
 DB_PORT="5432"
-DB_NAME="vb_brothers"
-DB_USER="admin"
+DB_NAME="database_name"
+DB_USER="username"
 
 
 # Create a PostgreSQL database dump

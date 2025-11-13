@@ -2,7 +2,7 @@
 
 DB_HOST="localhost"
 DB_PORT="5432"
-DB_NAME="pem"
+DB_NAME="database_name"
 DB_USER="postgres"
 
 
