@@ -10,9 +10,7 @@ const dbConfig = {
   database: database.database,
   port: database.port,
   max: 80,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: false,
   // number of milliseconds to wait before timing out when connecting a new client
   // by default this is 0 which means no timeout
   // return an error after specified milliseconds if connection could not be established

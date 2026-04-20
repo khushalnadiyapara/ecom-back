@@ -12,6 +12,9 @@ module.exports = {
   year: () => Joi.number().integer().min(2000).max(3000),
   password: () => Joi.string().min(5).max(30),
   name: () => Joi.string().trim().max(200),
+  token: () => Joi.string(),
+  description: () => Joi.string().max(1000),
+  search: () => Joi.string().allow('', null).default(''),
 
   address: () => Joi.string().min(5).max(250),
   remark: () => Joi.string().max(500),

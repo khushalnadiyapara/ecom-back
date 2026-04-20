@@ -1,0 +1,115 @@
+OTP REMOVE - Direct Login (mobile + password)
+
+Goal:
+- Remove OTP verification flow.
+- Keep only direct login with phone_number + password.
+
+==================================================
+1) Update route file
+File: src/routes/auth.route.js
+==================================================
+
+Keep:
+- POST /login
+- POST /logout
+- POST /session-logout (optional, keep if you use it)
+- GET /permissions
+
+Remove:
+- POST /verify route
+- verifyLogin import
+
+Change from:
+const verifyLogin = require('@/components/auth/verifyLogin');
+router.route('/verify').post(validate(verifyLogin.validationSchema), withDatabase(verifyLogin.controller));
+
+To:
+(delete both lines above)
+
+==================================================
+2) Update login logic to issue access token directly
+File: src/components/auth/loginUser.js
+==================================================
+
+Current behavior:
+- Creates verification token (otp_verification)
+- Inserts token/code in tokens table
+- Returns token_type = verification and otp = 654321
+
+Required behavior:
+- After password check, create session in sessions table
+- Fetch user permissions from role_permissions + permissions
+- Create auth JWT (type: auth)
+- Update sessions.token with auth token
+- Return token_type = access directly
+
+Remove these parts:
+- verificationToken creation
+- insert into tokens (code 654321)
+- response fields: otp and verification token
+
+Use same session + auth-token creation logic as:
+- src/components/auth/verifyLogin.js
+
+==================================================
+3) verifyLogin file is no longer needed
+File: src/components/auth/verifyLogin.js
+==================================================
+
+Options:
+- Option A: keep file but unused (safe)
+- Option B: delete file (clean)
+
+If deleted, make sure no import remains in routes.
+
+==================================================
+4) tokens table usage
+==================================================
+
+If OTP is fully removed:
+- tokens table is not needed for auth login flow.
+- Keep it only if used by other flows (forgot password, email verification, etc.).
+
+==================================================
+5) New direct login response format
+==================================================
+
+Return like:
+{
+  "token_type": "access",
+  "token": "<jwt>",
+  "user": {
+    "id": "...",
+    "name": "...",
+    "email": "...",
+    "phone_number": "...",
+    "is_admin": true/false,
+    "permissions": ["permission.one", "permission.two"]
+  }
+}
+
+==================================================
+6) Quick test checklist
+==================================================
+
+1. Start server
+2. Call POST /api/auth/login with:
+   {
+     "phone_number": "9876543210",
+     "password": "admin@123"
+   }
+3. Confirm response returns access token directly
+4. Call GET /api/auth/permissions with Authorization header = token
+5. Call POST /api/auth/logout with same token
+
+==================================================
+7) Minimal file-level summary
+==================================================
+
+Must change:
+- src/routes/auth.route.js
+- src/components/auth/loginUser.js
+
+Optional cleanup:
+- src/components/auth/verifyLogin.js
+
