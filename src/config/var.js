@@ -35,4 +35,13 @@ module.exports = {
     smtpHost: env.smtpHost,
     smtpPort: env.smtpPort,
   },
+
+  alerts: {
+    enabled: env.alertEmailEnabled,
+    to: env.alertEmailTo
+      ? env.alertEmailTo.split(",").map((s) => s.trim()).filter(Boolean)
+      : [],
+    rateLimitMs: env.alertRateLimitMs,
+    includeStack: env.alertIncludeStack,
+  },
 };

@@ -23,6 +23,16 @@ const env = {
   smtpHost: process.env.SMTP_HOST,
   smtpPort: process.env.SMTP_PORT,
 
+  // Ops alert emails (route failures, uncaught errors)
+  alertEmailEnabled: process.env.ALERT_EMAIL_ENABLED === "true",
+  alertEmailTo: process.env.ALERT_EMAIL_TO || "",
+  alertRateLimitMs: (() => {
+    const n = parseInt(process.env.ALERT_RATE_LIMIT_MS, 10);
+    if (Number.isNaN(n)) return 60000;
+    return Math.min(86400000, Math.max(0, n));
+  })(),
+  alertIncludeStack: process.env.ALERT_INCLUDE_STACK === "true",
+
   // Log levels
   consoleLogLevel: process.env.CONSOLE_LOG_LEVEL || 'info',
   fileLogLevel: process.env.FILE_LOG_LEVEL || 'false',
@@ -51,6 +61,11 @@ const envSchema = Joi.object({
   emailPassword: Joi.string().required(),
   smtpHost: Joi.string().required(),
   smtpPort: Joi.number().required(),
+
+  alertEmailEnabled: Joi.boolean().default(false),
+  alertEmailTo: Joi.string().allow("").default(""),
+  alertRateLimitMs: Joi.number().integer().min(0).max(86400000).default(60000),
+  alertIncludeStack: Joi.boolean().default(false),
 
   // Log levels
   consoleLogLevel: Joi.string()
@@ -90,5 +105,23 @@ const { error, value } = envSchema.validate(env);
 
 // Throw an error if env vars are not valid
 if (error) throw new Error(`ENV validation error: ${error.message}`);
+
+if (value.alertEmailEnabled) {
+  const recipients = value.alertEmailTo
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (recipients.length === 0) {
+    throw new Error(
+      "ALERT_EMAIL_TO is required (comma-separated) when ALERT_EMAIL_ENABLED=true"
+    );
+  }
+  for (const addr of recipients) {
+    const { error: emailErr } = Joi.string().email().validate(addr);
+    if (emailErr) {
+      throw new Error(`ALERT_EMAIL_TO invalid address: ${addr}`);
+    }
+  }
+}
 
 module.exports = value;

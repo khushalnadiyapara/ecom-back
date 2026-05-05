@@ -1,6 +1,6 @@
-\restrict GXsKEsDb2W6OwyhkDMW5gi6EHIcU0W2B7COrUJ3GQE5gTvl090P6fvCtWfStiq8
+\restrict 4PfMIQT9RhV1Wx5Sw69THcjvMCmDI6PwMDqiLqzFGMJNTnF3hju2v85wSbPJu4d
 
--- Dumped from database version 17.7
+-- Dumped from database version 17.9 (Ubuntu 17.9-0ubuntu0.25.10.1)
 -- Dumped by pg_dump version 17.7
 
 SET statement_timeout = 0;
@@ -487,11 +487,11 @@ CREATE TABLE public.sub_categories (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     category_id uuid NOT NULL,
     name text NOT NULL,
+    description text,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     created_by uuid,
-    updated_by uuid,
-    description text
+    updated_by uuid
 );
 
 
@@ -1548,7 +1548,7 @@ ALTER TABLE ONLY public.variant_specifications
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GXsKEsDb2W6OwyhkDMW5gi6EHIcU0W2B7COrUJ3GQE5gTvl090P6fvCtWfStiq8
+\unrestrict 4PfMIQT9RhV1Wx5Sw69THcjvMCmDI6PwMDqiLqzFGMJNTnF3hju2v85wSbPJu4d
 
 
 --

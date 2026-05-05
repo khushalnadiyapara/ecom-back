@@ -9,6 +9,7 @@ const Logger = require('./service/logger');
 const errorHandler = require('@/middleware/errorHandler');
 const apiRoutes = require('@/routes/app.route');
 const MarkdownServer = require('./lib/markdownServer');
+const ServerError = require('./utils/serverError');
 
 const app = express();
 
@@ -35,6 +36,9 @@ app.get('/ping', (req, res) => { res.send('pong'); });
 app.use('/docs', MarkdownServer('docs'));
 app.use('/files', express.static(constant.fileStoragePath));
 app.use('/api', apiRoutes);
+app.use('/througherr', (req, res, next) => {
+  throw new ServerError(500, 'This is a test error');
+});
 
 app.use(errorHandler);
 
