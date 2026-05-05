@@ -12,6 +12,9 @@ ALERT_EMAIL_ENABLED=true
 ALERT_EMAIL_TO=k.k.nadiyapara3107@gmail.com
 ALERT_RATE_LIMIT_MS=60000
 ALERT_INCLUDE_STACK=false
+
+# PM2 Config
+PM2_RESTART_CMD="pm2 restart ems-backend"
 ```
 
 ### `src/config/env.js`
@@ -22,6 +25,7 @@ Added validation for the new alert and SSH environment variables using Joi.
   alertEmailTo: process.env.ALERT_EMAIL_TO ,
   alertRateLimitMs: parseInt(process.env.ALERT_RATE_LIMIT_MS, 10) || 60000,
   alertIncludeStack: process.env.ALERT_INCLUDE_STACK,
+  pm2RestartCmd: process.env.PM2_RESTART_CMD || '',
 // ...
 ```
 
@@ -36,7 +40,10 @@ Wired the validated variables into the exported configuration object.
     rateLimitMs: env.alertRateLimitMs,
     includeStack: env.alertIncludeStack,
   },
-```
+  pm2: {
+    restartCmd: env.pm2RestartCmd,
+  },
+  ```
 
 ---
 
@@ -75,32 +82,67 @@ async function sendServerRestart() {
 ## 3. Application Execution & Error Hooks
 
 ### `src/middleware/errorHandler.js`
-Shortened the logic and implemented `process.exit(1)` directly after triggering the alert email. Exiting the process forces PM2 to execute an automatic restart.
+Shortened the logic and implemented `exec` to run PM2 restart commands explicitly, falling back to `process.exit(1)`.
 ```javascript
+const { exec } = require('child_process');
+
 const triggerCrash = (req, err, statusCode) => {
-  if (Vars.alerts.enabled && statusCode >= 500) {
-    void alertOps.sendRouteFailure(req, err, { statusCode }).finally(() => {
-      setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
-    });
+  const doRestart = () => {
+    if (Vars.pm2.restartCmd) {
+      Logger.info(`Executing PM2 restart command: ${Vars.pm2.restartCmd}`);
+      exec(Vars.pm2.restartCmd, (error) => {
+        if (error) {
+          Logger.error('PM2 restart failed', { error });
+          process.exit(1);
+        }
+      });
+    } else {
+      process.exit(1);
+    }
+  };
+
+  if (statusCode >= 500) {
+    if (Vars.alerts.enabled) {
+      void alertOps.sendRouteFailure(req, err, { statusCode }).finally(() => {
+        setTimeout(doRestart, 500);
+      });
+    } else {
+      setTimeout(doRestart, 500);
+    }
   }
 };
 // Applied triggerCrash to all 5xx responses...
 ```
 
 ### `src/index.js`
-Bound `sendServerRestart` to the successful `server.listen` event, and added `process.exit(1)` to all major process exceptions.
+Bound `sendServerRestart` to the successful `server.listen` event, and added identical PM2 `exec` logic to process exceptions.
 ```javascript
 const alertOps = require('@/service/mail/alertOps');
+const { exec } = require('child_process');
+
+const doRestart = () => {
+  if (vars.pm2.restartCmd) {
+    Logger.info(`Executing PM2 restart command: ${vars.pm2.restartCmd}`);
+    exec(vars.pm2.restartCmd, (error) => {
+      if (error) {
+        Logger.error('PM2 restart failed', { error });
+        process.exit(1);
+      }
+    });
+  } else {
+    process.exit(1);
+  }
+};
 
 process.on('uncaughtException', (err) => {
   Logger.error('uncaughtException', { message: err.message, stack: err.stack });
-  void alertOps.sendProcessFailure('uncaughtException', err).finally(() => process.exit(1));
+  void alertOps.sendProcessFailure('uncaughtException', err).finally(doRestart);
 });
 
 process.on('unhandledRejection', (reason) => {
   const err = reason instanceof Error ? reason : new Error(String(reason));
   Logger.error('unhandledRejection', { message: err.message, stack: err.stack });
-  void alertOps.sendProcessFailure('unhandledRejection', err).finally(() => process.exit(1));
+  void alertOps.sendProcessFailure('unhandledRejection', err).finally(doRestart);
 });
 
 server.listen(port, () => {

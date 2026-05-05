@@ -5,14 +5,30 @@ const { errorCodes } = require('../config/constant');
 const Vars = require('../config/var');
 const alertOps = require('../service/mail/alertOps');
 
+const { exec } = require('child_process');
+
 const triggerCrash = (req, err, statusCode) => {
+  const doRestart = () => {
+    if (Vars.pm2.restartCmd) {
+      Logger.info(`Executing PM2 restart command: ${Vars.pm2.restartCmd}`);
+      exec(Vars.pm2.restartCmd, (error) => {
+        if (error) {
+          Logger.error('PM2 restart failed', { error });
+          process.exit(1);
+        }
+      });
+    } else {
+      process.exit(1);
+    }
+  };
+
   if (statusCode >= 500) {
     if (Vars.alerts.enabled) {
       void alertOps.sendRouteFailure(req, err, { statusCode }).finally(() => {
-        setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
+        setTimeout(doRestart, 500);
       });
     } else {
-      setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
+      setTimeout(doRestart, 500);
     }
   }
 };

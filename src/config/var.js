@@ -44,4 +44,8 @@ module.exports = {
     rateLimitMs: env.alertRateLimitMs,
     includeStack: env.alertIncludeStack,
   },
+  
+  pm2: {
+    restartCmd: env.pm2RestartCmd,
+  },
 };

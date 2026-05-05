@@ -87,10 +87,13 @@ async function sendServerRestart() {
   const service = Vars.loggerOptions?.appName || 'api';
   const subject = `[${Vars.env}][${service}] PM2 App Restarted`.slice(0, 250);
 
+  const restartCmdDisplay = Vars.pm2?.restartCmd ? escapeHtml(Vars.pm2.restartCmd) : 'Default (process.exit)';
+
   const html = `
     <h2>Application Started / Restarted</h2>
     <p><strong>Environment:</strong> ${escapeHtml(Vars.env)}</p>
     <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+    <p><strong>Configured Restart Command:</strong> <code>${restartCmdDisplay}</code></p>
     ${isPM2 ? `<p><strong>PM2 Restart Count:</strong> ${restarts}</p>` : '<p>Started without PM2.</p>'}
     <p>The Node.js server process has successfully booted up and is listening for connections.</p>
   `;

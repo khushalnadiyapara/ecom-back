@@ -29,6 +29,8 @@ const env = {
   alertRateLimitMs: parseInt(process.env.ALERT_RATE_LIMIT_MS, 10) || 60000,
   alertIncludeStack: process.env.ALERT_INCLUDE_STACK === "true",
 
+  pm2RestartCmd: process.env.PM2_RESTART_CMD || '',
+
   // Log levels
   consoleLogLevel: process.env.CONSOLE_LOG_LEVEL || 'info',
   fileLogLevel: process.env.FILE_LOG_LEVEL || 'false',
@@ -62,6 +64,7 @@ const envSchema = Joi.object({
   alertEmailTo: Joi.string().allow("").default(""),
   alertRateLimitMs: Joi.number().integer().min(0).max(86400000).default(60000),
   alertIncludeStack: Joi.boolean().default(false),
+  pm2RestartCmd: Joi.string().allow('').default(''),
 
   // Log levels
   consoleLogLevel: Joi.string()
