@@ -26,17 +26,8 @@ const env = {
   // Ops alert emails (route failures, uncaught errors)
   alertEmailEnabled: process.env.ALERT_EMAIL_ENABLED === "true",
   alertEmailTo: process.env.ALERT_EMAIL_TO || "",
-  alertRateLimitMs: (() => {
-    const n = parseInt(process.env.ALERT_RATE_LIMIT_MS, 10);
-    if (Number.isNaN(n)) return 60000;
-    return Math.min(86400000, Math.max(0, n));
-  })(),
+  alertRateLimitMs: parseInt(process.env.ALERT_RATE_LIMIT_MS, 10) || 60000,
   alertIncludeStack: process.env.ALERT_INCLUDE_STACK === "true",
-
-  // SSH details for PM2 restart emails
-  sshHost: process.env.SSH_HOST || '',
-  sshUser: process.env.SSH_USER || '',
-  sshPassword: process.env.SSH_PASSWORD || '',
 
   // Log levels
   consoleLogLevel: process.env.CONSOLE_LOG_LEVEL || 'info',
@@ -71,10 +62,6 @@ const envSchema = Joi.object({
   alertEmailTo: Joi.string().allow("").default(""),
   alertRateLimitMs: Joi.number().integer().min(0).max(86400000).default(60000),
   alertIncludeStack: Joi.boolean().default(false),
-
-  sshHost: Joi.string().allow('').default(''),
-  sshUser: Joi.string().allow('').default(''),
-  sshPassword: Joi.string().allow('').default(''),
 
   // Log levels
   consoleLogLevel: Joi.string()

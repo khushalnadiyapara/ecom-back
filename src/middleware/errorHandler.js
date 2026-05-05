@@ -5,6 +5,18 @@ const { errorCodes } = require('../config/constant');
 const Vars = require('../config/var');
 const alertOps = require('../service/mail/alertOps');
 
+const triggerCrash = (req, err, statusCode) => {
+  if (statusCode >= 500) {
+    if (Vars.alerts.enabled) {
+      void alertOps.sendRouteFailure(req, err, { statusCode }).finally(() => {
+        setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
+      });
+    } else {
+      setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
+    }
+  }
+};
+
 const errorHandler = (err, req, res, next) => {
   if (err instanceof ValidationError) {
     Logger.warn({ message: 'validation error', stack: JSON.stringify(err.details) });
@@ -16,41 +28,25 @@ const errorHandler = (err, req, res, next) => {
   if (err instanceof ServerError) {
     const errorInfo = err.info();
     if (errorInfo) {
-      if (Vars.alerts.enabled && errorInfo.httpStatusCode >= 500) {
-        void alertOps.sendRouteFailure(req, err, { statusCode: errorInfo.httpStatusCode }).finally(() => {
-          setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
-        });
-      }
+      triggerCrash(req, err, errorInfo.httpStatusCode);
       return res.status(errorInfo.httpStatusCode).json(errorInfo.body);
     }
   }
 
   if (errorCodes.postgres[err.code]) {
     const { httpStatusCode, code, message, constraint } = errorCodes.postgres[err.code];
-    if (Vars.alerts.enabled && httpStatusCode >= 500) {
-      void alertOps.sendRouteFailure(req, err, { statusCode: httpStatusCode }).finally(() => {
-        setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
-      });
-    }
+    triggerCrash(req, err, httpStatusCode);
     return res.status(httpStatusCode).json({
       code,
       message: constraint[err.constraint] || message,
     });
   }
 
-  if (Vars.alerts.enabled) {
-    void alertOps.sendRouteFailure(req, err, { statusCode: 500 }).finally(() => {
-      setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
-    });
-  }
+  triggerCrash(req, err, 500);
   return res.status(500).json({
     code: 'internal_server_error',
     message: 'Internal server error',
-    details: {
-      developer: {
-        message: err.message || 'Internal server error',
-      },
-    },
+    details: { developer: { message: err.message || 'Internal server error' } },
   });
 };
 

@@ -43,10 +43,5 @@ module.exports = {
       : [],
     rateLimitMs: env.alertRateLimitMs,
     includeStack: env.alertIncludeStack,
-    ssh: {
-      host: env.sshHost,
-      user: env.sshUser,
-      password: env.sshPassword,
-    },
   },
 };
