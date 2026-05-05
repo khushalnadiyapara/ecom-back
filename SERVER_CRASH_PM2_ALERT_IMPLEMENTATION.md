@@ -88,17 +88,9 @@ const { exec } = require('child_process');
 
 const triggerCrash = (req, err, statusCode) => {
   const doRestart = () => {
-    if (Vars.pm2.restartCmd) {
-      Logger.info(`Executing PM2 restart command: ${Vars.pm2.restartCmd}`);
-      exec(Vars.pm2.restartCmd, (error) => {
-        if (error) {
-          Logger.error('PM2 restart failed', { error });
-          process.exit(1);
-        }
-      });
-    } else {
-      process.exit(1);
-    }
+    if (!Vars.pm2.restartCmd) return process.exit(1);
+    Logger.info(`Executing PM2: ${Vars.pm2.restartCmd}`);
+    exec(Vars.pm2.restartCmd, (err) => err && (Logger.error('PM2 failed', { err }), process.exit(1)));
   };
 
   if (statusCode >= 500) {
@@ -121,17 +113,9 @@ const alertOps = require('@/service/mail/alertOps');
 const { exec } = require('child_process');
 
 const doRestart = () => {
-  if (vars.pm2.restartCmd) {
-    Logger.info(`Executing PM2 restart command: ${vars.pm2.restartCmd}`);
-    exec(vars.pm2.restartCmd, (error) => {
-      if (error) {
-        Logger.error('PM2 restart failed', { error });
-        process.exit(1);
-      }
-    });
-  } else {
-    process.exit(1);
-  }
+  if (!vars.pm2.restartCmd) return process.exit(1);
+  Logger.info(`Executing PM2: ${vars.pm2.restartCmd}`);
+  exec(vars.pm2.restartCmd, (err) => err && (Logger.error('PM2 failed', { err }), process.exit(1)));
 };
 
 process.on('uncaughtException', (err) => {

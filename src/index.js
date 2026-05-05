@@ -10,17 +10,9 @@ const alertOps = require('@/service/mail/alertOps');
 const { exec } = require('child_process');
 
 const doRestart = () => {
-  if (vars.pm2.restartCmd) {
-    Logger.info(`Executing PM2 restart command: ${vars.pm2.restartCmd}`);
-    exec(vars.pm2.restartCmd, (error) => {
-      if (error) {
-        Logger.error('PM2 restart failed', { error });
-        process.exit(1);
-      }
-    });
-  } else {
-    process.exit(1);
-  }
+  if (!vars.pm2.restartCmd) return process.exit(1);
+  Logger.info(`Executing PM2: ${vars.pm2.restartCmd}`);
+  exec(vars.pm2.restartCmd, (err) => err && (Logger.error('PM2 failed', { err }), process.exit(1)));
 };
 
 process.on('uncaughtException', (err) => {
