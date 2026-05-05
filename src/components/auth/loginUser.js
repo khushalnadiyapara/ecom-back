@@ -14,10 +14,6 @@ exports.validationSchema = {
 exports.controller = async (req, res, next, db) => {
   const { phone_number, password } = req.body;
 
-  // Test error for alertOps testing
-  throw new ServerError('INTERNAL_SERVER_ERROR', 'This is a test error during login');
-
-
   const user = await db.queryOne(
     'SELECT * FROM users WHERE phone_number = $1',
     [phone_number],

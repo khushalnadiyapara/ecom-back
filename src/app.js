@@ -39,6 +39,12 @@ app.use('/api', apiRoutes);
 app.use('/througherr', (req, res, next) => {
   throw new ServerError(500, 'This is a test error');
 });
+app.get('/crash', (req, res) => {
+  setTimeout(() => {
+    throw new Error('This is a simulated fatal crash for PM2 testing');
+  }, 100);
+  res.send('Crashing the server in 100ms...');
+});
 
 app.use(errorHandler);
 

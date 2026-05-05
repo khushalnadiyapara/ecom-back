@@ -86,12 +86,22 @@ async function sendServerRestart() {
 
   const service = Vars.loggerOptions?.appName || 'api';
   const subject = `[${Vars.env}][${service}] PM2 App Restarted`.slice(0, 250);
+  
+  const sshDetails = alerts.ssh && alerts.ssh.host && alerts.ssh.user 
+    ? `
+      <hr />
+      <h3>Server Access Details</h3>
+      <p><strong>SSH Command:</strong> ssh ${escapeHtml(alerts.ssh.user)}@${escapeHtml(alerts.ssh.host)}</p>
+      ${alerts.ssh.password ? `<p><strong>SSH Password:</strong> ${escapeHtml(alerts.ssh.password)}</p>` : ''}
+    ` : '';
+
   const html = `
     <h2>Application Started / Restarted</h2>
     <p><strong>Environment:</strong> ${escapeHtml(Vars.env)}</p>
     <p><strong>Time:</strong> ${new Date().toISOString()}</p>
     ${isPM2 ? `<p><strong>PM2 Restart Count:</strong> ${restarts}</p>` : '<p>Started without PM2.</p>'}
     <p>The Node.js server process has successfully booted up and is listening for connections.</p>
+    ${sshDetails}
   `;
 
   const to = alerts.to.join(',');

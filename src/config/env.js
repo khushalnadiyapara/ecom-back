@@ -33,6 +33,11 @@ const env = {
   })(),
   alertIncludeStack: process.env.ALERT_INCLUDE_STACK === "true",
 
+  // SSH details for PM2 restart emails
+  sshHost: process.env.SSH_HOST || '',
+  sshUser: process.env.SSH_USER || '',
+  sshPassword: process.env.SSH_PASSWORD || '',
+
   // Log levels
   consoleLogLevel: process.env.CONSOLE_LOG_LEVEL || 'info',
   fileLogLevel: process.env.FILE_LOG_LEVEL || 'false',
@@ -66,6 +71,10 @@ const envSchema = Joi.object({
   alertEmailTo: Joi.string().allow("").default(""),
   alertRateLimitMs: Joi.number().integer().min(0).max(86400000).default(60000),
   alertIncludeStack: Joi.boolean().default(false),
+
+  sshHost: Joi.string().allow('').default(''),
+  sshUser: Joi.string().allow('').default(''),
+  sshPassword: Joi.string().allow('').default(''),
 
   // Log levels
   consoleLogLevel: Joi.string()

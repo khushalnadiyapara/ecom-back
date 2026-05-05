@@ -17,7 +17,9 @@ const errorHandler = (err, req, res, next) => {
     const errorInfo = err.info();
     if (errorInfo) {
       if (Vars.alerts.enabled && errorInfo.httpStatusCode >= 500) {
-        void alertOps.sendRouteFailure(req, err, { statusCode: errorInfo.httpStatusCode });
+        void alertOps.sendRouteFailure(req, err, { statusCode: errorInfo.httpStatusCode }).finally(() => {
+          setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
+        });
       }
       return res.status(errorInfo.httpStatusCode).json(errorInfo.body);
     }
@@ -26,7 +28,9 @@ const errorHandler = (err, req, res, next) => {
   if (errorCodes.postgres[err.code]) {
     const { httpStatusCode, code, message, constraint } = errorCodes.postgres[err.code];
     if (Vars.alerts.enabled && httpStatusCode >= 500) {
-      void alertOps.sendRouteFailure(req, err, { statusCode: httpStatusCode });
+      void alertOps.sendRouteFailure(req, err, { statusCode: httpStatusCode }).finally(() => {
+        setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
+      });
     }
     return res.status(httpStatusCode).json({
       code,
@@ -35,7 +39,9 @@ const errorHandler = (err, req, res, next) => {
   }
 
   if (Vars.alerts.enabled) {
-    void alertOps.sendRouteFailure(req, err, { statusCode: 500 });
+    void alertOps.sendRouteFailure(req, err, { statusCode: 500 }).finally(() => {
+      setTimeout(() => process.exit(1), 500); // Trigger PM2 restart
+    });
   }
   return res.status(500).json({
     code: 'internal_server_error',

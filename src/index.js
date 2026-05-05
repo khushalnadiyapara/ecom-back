@@ -18,7 +18,9 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason) => {
   const err = reason instanceof Error ? reason : new Error(String(reason));
   Logger.error('unhandledRejection', { message: err.message, stack: err.stack });
-  void alertOps.sendProcessFailure('unhandledRejection', err);
+  void alertOps.sendProcessFailure('unhandledRejection', err).finally(() => {
+    process.exit(1);
+  });
 });
 
 const server = http.createServer(app);
