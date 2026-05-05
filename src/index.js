@@ -7,24 +7,16 @@ const Socket = require('@/service/socket');
 
 const { port, env } = vars;
 const alertOps = require('@/service/mail/alertOps');
-const { exec } = require('child_process');
+// process.on('uncaughtException', (err) => {
+//   Logger.error('uncaughtException', { message: err.message, stack: err.stack });
+//   void alertOps.sendProcessFailure('uncaughtException', err).finally(() => process.exit(1));
+// });
 
-const doRestart = () => {
-  if (!vars.pm2.restartCmd) return process.exit(1);
-  Logger.info(`Executing PM2: ${vars.pm2.restartCmd}`);
-  exec(vars.pm2.restartCmd, (err) => err && (Logger.error('PM2 failed', { err }), process.exit(1)));
-};
-
-process.on('uncaughtException', (err) => {
-  Logger.error('uncaughtException', { message: err.message, stack: err.stack });
-  void alertOps.sendProcessFailure('uncaughtException', err).finally(doRestart);
-});
-
-process.on('unhandledRejection', (reason) => {
-  const err = reason instanceof Error ? reason : new Error(String(reason));
-  Logger.error('unhandledRejection', { message: err.message, stack: err.stack });
-  void alertOps.sendProcessFailure('unhandledRejection', err).finally(doRestart);
-});
+// process.on('unhandledRejection', (reason) => {
+//   const err = reason instanceof Error ? reason : new Error(String(reason));
+//   Logger.error('unhandledRejection', { message: err.message, stack: err.stack });
+//   void alertOps.sendProcessFailure('unhandledRejection', err).finally(() => process.exit(1));
+// });
 
 const server = http.createServer(app);
 const io = Socket.listen(server);

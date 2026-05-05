@@ -107,51 +107,23 @@ const triggerCrash = (req, err, statusCode) => {
 ```
 
 ### `src/index.js`
-Bound `sendServerRestart` to the successful `server.listen` event, and added identical PM2 `exec` logic to process exceptions.
+Bound `sendServerRestart` to the successful `server.listen` event, and added simple `process.exit(1)` to process exceptions.
 ```javascript
 const alertOps = require('@/service/mail/alertOps');
-const { exec } = require('child_process');
-
-const doRestart = () => {
-  if (!vars.pm2.restartCmd) return process.exit(1);
-  Logger.info(`Executing PM2: ${vars.pm2.restartCmd}`);
-  exec(vars.pm2.restartCmd, (err) => err && (Logger.error('PM2 failed', { err }), process.exit(1)));
-};
 
 process.on('uncaughtException', (err) => {
   Logger.error('uncaughtException', { message: err.message, stack: err.stack });
-  void alertOps.sendProcessFailure('uncaughtException', err).finally(doRestart);
+  void alertOps.sendProcessFailure('uncaughtException', err).finally(() => process.exit(1));
 });
 
 process.on('unhandledRejection', (reason) => {
   const err = reason instanceof Error ? reason : new Error(String(reason));
   Logger.error('unhandledRejection', { message: err.message, stack: err.stack });
-  void alertOps.sendProcessFailure('unhandledRejection', err).finally(doRestart);
+  void alertOps.sendProcessFailure('unhandledRejection', err).finally(() => process.exit(1));
 });
 
 server.listen(port, () => {
   Logger.info(`Server PORT : ${port}`);
   void alertOps.sendServerRestart(); // Emails ops upon PM2 boot
 });
-```
-
-## 4. PM2 Configuration
-
-### `ecosystem.config.js`
-Set up the `ecosystem.config.js` file to handle PM2 instances with `autorestart: true` tracking.
-```javascript
-module.exports = {
-  apps: [
-    {
-      name: "ems-backend",
-      script: "src/index.js",
-      instances: 1,
-      autorestart: true,
-      watch: false,
-      max_memory_restart: "500M",
-      env: { NODE_ENV: "development" },
-      env_production: { NODE_ENV: "production" },
-    },
-  ],
-};
 ```
