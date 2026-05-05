@@ -38,8 +38,6 @@ exports.controller = async (req, res, next, db) => {
       INSERT INTO products (
         category_id,
         sub_category_id,
-        name,
-        description,
         base_price,
         created_by,
         updated_by
